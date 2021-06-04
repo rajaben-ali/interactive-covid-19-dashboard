@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import altair as alt
 import plotly.express as px
+import datetime
 
 # This line needs to be the first one to be called in the script
 # Use the full page instead of a narrow central column
@@ -73,6 +74,18 @@ def get_recovered_melted(df):
 st.sidebar.write("""
 # Control data to display here
 """)
+
+with st.sidebar.beta_expander('Selection of datetime'):
+  if st.checkbox('Choose a specific timeline'):
+    global_selected_year = st.radio('Select year', [2020,2021]) # Dynamically get possible years from datasets
+    global_selected_month = st.slider('Select month', min_value=1, max_value=12)
+  else:
+    st.write("No specific timeline is used, the dashboard will display the overall timeline.")
+    global_selected_year = None
+    global_selected_month = None
+
+with st.sidebar.beta_expander('Selection of counting method'):
+  global_selected_method = st.radio('Select method', ["number","cumulated number", "7-day rolling average"]) # Dynamically get possible years from datasets
 
 if st.sidebar.checkbox('Reported cases'):
   # Content in sidebar
