@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import altair as alt
 import plotly.express as px
-import datetime
 
 # This line needs to be the first one to be called in the script
 # Use the full page instead of a narrow central column
@@ -76,13 +75,14 @@ st.sidebar.write("""
 """)
 
 with st.sidebar.beta_expander('Selection of datetime'):
-  if st.checkbox('Choose a specific timeline'):
+  special_timeline = st.checkbox('Choose a specific timeline')
+  if special_timeline:
     global_year = st.radio('Select year', [2020,2021]) # Dynamically get possible years from datasets
     global_month = st.slider('Select month', min_value=1, max_value=12)
   else:
     st.write("No specific timeline is used, the dashboard will display the overall timeline.")
     global_year = None
-    global_smonth = None
+    global_month = None
 
 with st.sidebar.beta_expander('Selection of counting method'):
   global_method = st.radio('Select method', ["number","cumulated number", "7-day rolling average"])
@@ -100,28 +100,73 @@ global_case_type = st.sidebar.radio('Select case types', ["confirmed","deaths", 
 
 # End of sidebar code
 
+
 # Start of plots
 if (global_case_type == "confirmed"):
   # confirmed cases
   conf_data = get_confirmed_melted(df_confirmed)
   # plot
   st.write('### Reported number of covid cases in '+global_country)
-  conf_fig = px.line(conf_data[conf_data["country"] == global_country], x="date", y="confirmed-count", hover_name="confirmed-count",
-          line_shape="spline", render_mode="svg")
-  st.plotly_chart(conf_fig)
+
+  # Check if the user choose a specific timeline
+  if special_timeline:
+    special_df_conf = conf_data[conf_data["country"] == global_country]
+    special_df_conf = special_df_conf[np.logical_and(special_df_conf["date"].dt.month == global_month, special_df_conf["date"].dt.year == global_year)]
+
+    if not special_df_conf.empty:
+      conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
+            line_shape="spline", render_mode="svg")
+      st.plotly_chart(conf_fig)
+    else:
+      # no dataframe available for selected datetime
+      st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
+  else:
+    conf_fig = px.line(conf_data[conf_data["country"] == global_country], x="date", y="confirmed-count", hover_name="confirmed-count",
+            line_shape="spline", render_mode="svg")
+    st.plotly_chart(conf_fig)
 elif (global_case_type == 'deaths'):
   # death cases
   death_data = get_deaths_melted(df_deaths)
   # plot
   st.write('### Death number of covid cases in '+global_country)
-  death_fig = px.line(death_data[death_data["country"] == global_country], x="date", y="death-count", hover_name="death-count",
-          line_shape="spline", render_mode="svg")
-  st.plotly_chart(death_fig)
+
+  # Check if the user choose a specific timeline
+  if special_timeline:
+    special_df_death = death_data[death_data["country"] == global_country]
+    special_df_death = special_df_death[np.logical_and(special_df_death["date"].dt.month == global_month, special_df_death["date"].dt.year == global_year)]
+
+    if not special_df_death.empty:
+      death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
+              line_shape="spline", render_mode="svg")
+      st.plotly_chart(death_fig)
+    else:
+      # no dataframe available for selected datetime
+      st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
+  else:
+    # No specific timeline is selected, display all available timeline
+    death_fig = px.line(death_data[death_data["country"] == global_country], x="date", y="death-count", hover_name="death-count",
+            line_shape="spline", render_mode="svg")
+    st.plotly_chart(death_fig)
 else:
   # Consider recovered
   recov_data = get_recovered_melted(df_recovered)
   # plot
   st.write('### Recovered case of covid in '+global_country)
-  death_fig = px.line(recov_data[recov_data["country"] == global_country], x="date", y="recovered-count", hover_name="recovered-count",
-          line_shape="spline", render_mode="svg")
-  st.plotly_chart(death_fig)
+
+  # Check if the user choose a specific timeline
+  if special_timeline:
+    special_df_recov = recov_data[recov_data["country"] == global_country]
+    special_df_recov = special_df_recov[np.logical_and(special_df_recov["date"].dt.month == global_month, special_df_recov["date"].dt.year == global_year)]
+
+    if not special_df_recov.empty:
+      recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
+                line_shape="spline", render_mode="svg")
+      st.plotly_chart(recov_fig)
+    else:
+      # no dataframe available for selected datetime
+      st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
+  else:
+    # No specific timeline is selected, display all available timeline
+    recov_fig = px.line(recov_data[recov_data["country"] == global_country], x="date", y="recovered-count", hover_name="recovered-count",
+            line_shape="spline", render_mode="svg")
+    st.plotly_chart(recov_fig)
