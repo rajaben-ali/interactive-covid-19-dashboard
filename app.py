@@ -30,32 +30,38 @@ df_confirmed, df_deaths, df_recovered = load_data()
 # Formatting of data
 @st.cache
 def format_data():
-  df_confirmed.rename({'Province/State': 'province', 'Country/Region': 'country', 'Date': 'date'}, axis=1, inplace=True)
-  df_deaths.rename({'Province/State': 'province', 'Country/Region': 'country', 'Date': 'date'}, axis=1, inplace=True)
-  df_recovered.rename({'Province/State': 'province', 'Country/Region': 'country', 'Date': 'date'}, axis=1, inplace=True)
+  df_confirmed.rename({'Province/State': 'province', 'Country/Region': 'country'}, axis=1, inplace=True)
+  df_deaths.rename({'Province/State': 'province', 'Country/Region': 'country'}, axis=1, inplace=True)
+  df_recovered.rename({'Province/State': 'province', 'Country/Region': 'country'}, axis=1, inplace=True)
 
 format_data()
 
 # Raw data - with streamlit cache
 @st.cache
 def get_confirmed_melted(df):
-  return df.melt(id_vars=["province", "country"], var_name='date', value_name='confirmed-count')
+  df = df.melt(id_vars=["province", "country"], var_name='date', value_name='confirmed-count')
+  df['date'] = pd.to_datetime(df['date'])
+  return df
   #return data.sort_values(by='confirmed-count', axis=0, ascending=False)
 
 @st.cache
 def get_deaths_melted(df):
-  return df.melt(id_vars=["province", "country"], var_name='date', value_name='death-count')
+  df = df.melt(id_vars=["province", "country"], var_name='date', value_name='death-count')
+  df['date'] = pd.to_datetime(df['date'])
+  return df
   #return data.sort_values(by='death-count', axis=0, ascending=False)
 
 @st.cache
 def get_recovered_melted(df):
-  return df.melt(id_vars=["province", "country"], var_name='date', value_name='recovered-count')
+  df = df.melt(id_vars=["province", "country"], var_name='date', value_name='recovered-count')
+  df['date'] = pd.to_datetime(df['date'])
+  return df
   #return data.sort_values(by='recovered-count', axis=0, ascending=False)
 
 # Cumulative data - with streamlit cache
+# TODO:
 
-
-# Add normalized columns to the three csv files
+# TODO: Add normalized columns to the three csv files
 # Confirmed csv - add column named "norm-confirmed"
 
 # Deaths csv - add column named "norm-deaths"
