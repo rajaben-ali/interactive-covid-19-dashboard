@@ -77,64 +77,51 @@ st.sidebar.write("""
 
 with st.sidebar.beta_expander('Selection of datetime'):
   if st.checkbox('Choose a specific timeline'):
-    global_selected_year = st.radio('Select year', [2020,2021]) # Dynamically get possible years from datasets
-    global_selected_month = st.slider('Select month', min_value=1, max_value=12)
+    global_year = st.radio('Select year', [2020,2021]) # Dynamically get possible years from datasets
+    global_month = st.slider('Select month', min_value=1, max_value=12)
   else:
     st.write("No specific timeline is used, the dashboard will display the overall timeline.")
-    global_selected_year = None
-    global_selected_month = None
+    global_year = None
+    global_smonth = None
 
 with st.sidebar.beta_expander('Selection of counting method'):
-  global_selected_method = st.radio('Select method', ["number","cumulated number", "7-day rolling average"]) # Dynamically get possible years from datasets
+  global_method = st.radio('Select method', ["number","cumulated number", "7-day rolling average"])
 
-if st.sidebar.checkbox('Reported cases'):
-  # Content in sidebar
-  st.sidebar.write("""
-  ### Reported number of covid cases for one specific country
-  """)
-  option_confirmed = st.sidebar.selectbox(
-      'Cases - Which country do you want to dislay?',
-      get_confirmed_melted(df_confirmed)["country"].unique())
-  # Content in main interface
-  df_confirmed_melted = get_confirmed_melted(df_confirmed)
+# TODO: Cache the variable 'all_possible_countries'
+all_possible_countries = np.unique(np.concatenate((get_confirmed_melted(df_confirmed)["country"].unique(),
+  get_deaths_melted(df_deaths)["country"].unique(),
+  get_recovered_melted(df_recovered)["country"].unique()), 0))
 
+global_country = st.sidebar.selectbox(
+      'Which country do you want to dislay?',
+      all_possible_countries)
+
+global_case_type = st.sidebar.radio('Select case types', ["confirmed","deaths", "recovered"]) # Dynamically get possible years from datasets
+
+# End of sidebar code
+
+# Start of plots
+if (global_case_type == "confirmed"):
+  # confirmed cases
+  conf_data = get_confirmed_melted(df_confirmed)
   # plot
-  st.write('### Reported number of covid cases in '+option_confirmed)
-  fig = px.line(df_confirmed_melted[df_confirmed_melted["country"] == option_confirmed], x="date", y="confirmed-count", hover_name="confirmed-count",
+  st.write('### Reported number of covid cases in '+global_country)
+  conf_fig = px.line(conf_data[conf_data["country"] == global_country], x="date", y="confirmed-count", hover_name="confirmed-count",
           line_shape="spline", render_mode="svg")
-  st.plotly_chart(fig)
-
-if st.sidebar.checkbox('Death cases'):
-  # Content in sidebar
-  st.sidebar.write("""
-  ### Death number from covid cases for one specific country
-  """)
-  option_death = st.sidebar.selectbox(
-      'Death - Which country do you want to dislay?',
-      get_deaths_melted(df_deaths)["country"].unique())
-  # Content in main interface
-  df_death_melted = get_deaths_melted(df_deaths)
-
+  st.plotly_chart(conf_fig)
+elif (global_case_type == 'deaths'):
+  # death cases
+  death_data = get_deaths_melted(df_deaths)
   # plot
-  st.write('### Death number of people from covid in '+option_death)
-  fig_death = px.line(df_death_melted[df_death_melted["country"] == option_death], x="date", y="death-count", hover_name="death-count",
-          line_shape="spline", render_mode="svg")#, animation_frame="date")
-  st.plotly_chart(fig_death)
-
-
-if st.sidebar.checkbox('Recovered cases'):
-  # Content in sidebar
-  st.sidebar.write("""
-  ### Recovered number from covid cases for one specific country
-  """)
-  option_recov = st.sidebar.selectbox(
-      'Recovered - Which country do you want to dislay?',
-      get_recovered_melted(df_recovered)["country"].unique())
-  # Content in main interface
-  df_recovered_melted = get_recovered_melted(df_recovered)
-
+  st.write('### Death number of covid cases in '+global_country)
+  death_fig = px.line(death_data[death_data["country"] == global_country], x="date", y="death-count", hover_name="death-count",
+          line_shape="spline", render_mode="svg")
+  st.plotly_chart(death_fig)
+else:
+  # Consider recovered
+  recov_data = get_recovered_melted(df_recovered)
   # plot
-  st.write('### Recovered number of people from covid in '+option_recov)
-  fig_conf = px.line(df_recovered_melted[df_recovered_melted["country"] == option_recov], x="date", y="recovered-count", hover_name="recovered-count",
-          line_shape="spline", render_mode="svg")#, animation_frame="date")
-  st.plotly_chart(fig_conf)
+  st.write('### Recovered case of covid in '+global_country)
+  death_fig = px.line(recov_data[recov_data["country"] == global_country], x="date", y="recovered-count", hover_name="recovered-count",
+          line_shape="spline", render_mode="svg")
+  st.plotly_chart(death_fig)
