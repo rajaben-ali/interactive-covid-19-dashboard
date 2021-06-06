@@ -58,12 +58,24 @@ def get_recovered_melted(df):
 # TODO:
 
 # TODO: Add normalized columns to the three csv files
-# Confirmed csv - add column named "norm-confirmed"
 
-# Deaths csv - add column named "norm-deaths"
+# Useful functions
+def get_daterange_str(date_col, custom=False):
+  if custom:
+    date_range = str(global_month) +"-"+ str(global_year)
+    return " in " + date_range
+  start_d = date_col.dt.date.min()
+  end_d = date_col.dt.date.max()
+  return " from " + str(start_d.day) +"-"+ str(start_d.month) +"-"+ str(start_d.year) \
+    + " to " + str(end_d.day) +"-"+ str(end_d.month) +"-"+ str(end_d.year)
 
-# Recovered csv - add column named "norm-recovered"
+@st.cache
+def get_available_years():
+  return list(np.unique(np.concatenate([get_confirmed_melted(df_confirmed)['date'].dt.year.unique(), \
+      get_deaths_melted(df_deaths)['date'].dt.year.unique(), \
+      get_recovered_melted(df_recovered)['date'].dt.year.unique()]), axis=0))
 
+# End of useful functions
 
 # Sidebar Title and description
 st.sidebar.write("""
@@ -73,7 +85,8 @@ st.sidebar.write("""
 with st.sidebar.beta_expander('Selection of datetime'):
   special_timeline = st.checkbox('Choose a specific timeline')
   if special_timeline:
-    global_year = st.radio('Select year', [2020,2021]) # Dynamically get possible years from datasets
+    option_years = get_available_years()
+    global_year = st.radio('Select year', option_years)
     global_month = st.slider('Select month', min_value=1, max_value=12)
   else:
     st.write("No specific timeline is used, the dashboard will display the overall timeline.")
@@ -95,18 +108,6 @@ global_country = st.sidebar.selectbox(
 global_case_type = st.sidebar.radio('Select case types', ["confirmed","deaths", "recovered"]) # Dynamically get possible years from datasets
 
 # End of sidebar code
-
-# Useful functions
-def get_daterange_str(date_col, custom=False):
-  if custom:
-    date_range = str(global_month) +"-"+ str(global_year)
-    return " in " + date_range
-  start_d = date_col.dt.date.min()
-  end_d = date_col.dt.date.max()
-  return " from " + str(start_d.day) +"-"+ str(start_d.month) +"-"+ str(start_d.year) \
-    + " to " + str(end_d.day) +"-"+ str(end_d.month) +"-"+ str(end_d.year)
-
-# End of useful functions
 
 # Start of plots
 if (global_case_type == "confirmed"):
