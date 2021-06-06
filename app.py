@@ -6,7 +6,7 @@ import plotly.express as px
 
 # This line needs to be the first one to be called in the script
 # Use the full page instead of a narrow central column
-st.set_page_config(layout="wide")
+#st.set_page_config(layout="wide")
 
 st.title('Dashboard for Covid19 data')
 with st.beta_expander('Project description'):
