@@ -100,6 +100,17 @@ global_case_type = st.sidebar.radio('Select case types', ["confirmed","deaths", 
 
 # End of sidebar code
 
+# Useful functions
+def get_daterange_str(date_col, custom=False):
+  if custom:
+    date_range = str(global_month) +"-"+ str(global_year)
+    return " in " + date_range
+  start_d = date_col.dt.date.min()
+  end_d = date_col.dt.date.max()
+  return " from " + str(start_d.day) +"-"+ str(start_d.month) +"-"+ str(start_d.year) \
+    + " to " + str(end_d.day) +"-"+ str(end_d.month) +"-"+ str(end_d.year)
+
+# End of useful functions
 
 # Start of plots
 if (global_case_type == "confirmed"):
@@ -113,8 +124,10 @@ if (global_case_type == "confirmed"):
     special_df_conf = conf_data[conf_data["country"] == global_country]
     special_df_conf = special_df_conf[np.logical_and(special_df_conf["date"].dt.month == global_month, special_df_conf["date"].dt.year == global_year)]
 
+    # Check if data is available for selected timeline
     if not special_df_conf.empty:
       conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
+      title="Reported cases in "+global_country+ get_daterange_str(special_df_conf["date"], custom=True),
             line_shape="spline", render_mode="svg")
       st.plotly_chart(conf_fig)
     else:
@@ -122,6 +135,7 @@ if (global_case_type == "confirmed"):
       st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
   else:
     conf_fig = px.line(conf_data[conf_data["country"] == global_country], x="date", y="confirmed-count", hover_name="confirmed-count",
+            title="Reported cases in "+global_country+ get_daterange_str(conf_data[conf_data["country"] == global_country]["date"]),
             line_shape="spline", render_mode="svg")
     st.plotly_chart(conf_fig)
 elif (global_case_type == 'deaths'):
@@ -137,6 +151,7 @@ elif (global_case_type == 'deaths'):
 
     if not special_df_death.empty:
       death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
+              title="Death cases in "+global_country+ get_daterange_str(special_df_death["date"], custom=True),
               line_shape="spline", render_mode="svg")
       st.plotly_chart(death_fig)
     else:
@@ -145,6 +160,7 @@ elif (global_case_type == 'deaths'):
   else:
     # No specific timeline is selected, display all available timeline
     death_fig = px.line(death_data[death_data["country"] == global_country], x="date", y="death-count", hover_name="death-count",
+            title="Death cases in "+global_country+ get_daterange_str(death_data[death_data["country"] == global_country]["date"]),
             line_shape="spline", render_mode="svg")
     st.plotly_chart(death_fig)
 else:
@@ -160,6 +176,7 @@ else:
 
     if not special_df_recov.empty:
       recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
+                title="Recovered cases in "+global_country+ get_daterange_str(special_df_recov["date"], custom=True),
                 line_shape="spline", render_mode="svg")
       st.plotly_chart(recov_fig)
     else:
@@ -168,5 +185,6 @@ else:
   else:
     # No specific timeline is selected, display all available timeline
     recov_fig = px.line(recov_data[recov_data["country"] == global_country], x="date", y="recovered-count", hover_name="recovered-count",
+            title="Recovered cases in "+global_country+ get_daterange_str(recov_data[recov_data["country"] == global_country]["date"]),
             line_shape="spline", render_mode="svg")
     st.plotly_chart(recov_fig)
