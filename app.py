@@ -4,9 +4,6 @@ import numpy as np
 import altair as alt
 import plotly.express as px
 
-# This line needs to be the first one to be called in the script
-# Use the full page instead of a narrow central column
-
 st.title('Dashboard for Covid19 data')
 with st.beta_expander('Project description'):
   st.write("""
@@ -126,8 +123,11 @@ if (global_case_type == "confirmed"):
     # Check if data is available for selected timeline
     if not special_df_conf.empty:
       conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
-      title="Reported cases in "+global_country+ get_daterange_str(special_df_conf["date"], custom=True),
+            title="Reported cases in "+global_country+ get_daterange_str(special_df_conf["date"], custom=True),
+            labels={"confirmed-count":"number"},
+            color="country",
             line_shape="spline", render_mode="svg")
+      conf_fig.update_layout(hovermode="x")
       st.plotly_chart(conf_fig)
     else:
       # no dataframe available for selected datetime
@@ -135,7 +135,10 @@ if (global_case_type == "confirmed"):
   else:
     conf_fig = px.line(conf_data[conf_data["country"] == global_country], x="date", y="confirmed-count", hover_name="confirmed-count",
             title="Reported cases in "+global_country+ get_daterange_str(conf_data[conf_data["country"] == global_country]["date"]),
+            labels={"confirmed-count":"number"},
+            color="country",
             line_shape="spline", render_mode="svg")
+    conf_fig.update_layout(hovermode="x")
     st.plotly_chart(conf_fig)
 elif (global_case_type == 'deaths'):
   # death cases
@@ -151,7 +154,10 @@ elif (global_case_type == 'deaths'):
     if not special_df_death.empty:
       death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
               title="Death cases in "+global_country+ get_daterange_str(special_df_death["date"], custom=True),
+              labels={"death-count":"number"},
+              color="country",
               line_shape="spline", render_mode="svg")
+      death_fig.update_layout(hovermode="x")
       st.plotly_chart(death_fig)
     else:
       # no dataframe available for selected datetime
@@ -160,7 +166,10 @@ elif (global_case_type == 'deaths'):
     # No specific timeline is selected, display all available timeline
     death_fig = px.line(death_data[death_data["country"] == global_country], x="date", y="death-count", hover_name="death-count",
             title="Death cases in "+global_country+ get_daterange_str(death_data[death_data["country"] == global_country]["date"]),
+            labels={"death-count":"number"},
+            color="country",
             line_shape="spline", render_mode="svg")
+    death_fig.update_layout(hovermode="x")
     st.plotly_chart(death_fig)
 else:
   # Consider recovered
@@ -176,7 +185,10 @@ else:
     if not special_df_recov.empty:
       recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
                 title="Recovered cases in "+global_country+ get_daterange_str(special_df_recov["date"], custom=True),
+                labels={"recovered-count":"number"},
+                color="country",
                 line_shape="spline", render_mode="svg")
+      recov_fig.update_layout(hovermode="x")
       st.plotly_chart(recov_fig)
     else:
       # no dataframe available for selected datetime
@@ -185,5 +197,8 @@ else:
     # No specific timeline is selected, display all available timeline
     recov_fig = px.line(recov_data[recov_data["country"] == global_country], x="date", y="recovered-count", hover_name="recovered-count",
             title="Recovered cases in "+global_country+ get_daterange_str(recov_data[recov_data["country"] == global_country]["date"]),
+            labels={"recovered-count":"number"},
+            color="country",
             line_shape="spline", render_mode="svg")
+    recov_fig.update_layout(hovermode="x")
     st.plotly_chart(recov_fig)
