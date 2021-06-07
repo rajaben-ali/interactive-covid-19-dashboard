@@ -133,7 +133,7 @@ if (global_case_type == "confirmed"):
     # Check if data is available for selected timeline
     if not special_df_conf.empty:
       conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
-            #title=global_country+ get_daterange_str(special_df_conf["date"], custom=True),
+            title=get_selected_countries_str()+ get_daterange_str(special_df_conf["date"], custom=True),
             labels={"confirmed-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
@@ -143,9 +143,8 @@ if (global_case_type == "confirmed"):
       # no dataframe available for selected datetime
       st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
   else:
-    st.write('here')
     conf_fig = px.line(conf_data, x="date", y="confirmed-count", hover_name="confirmed-count",
-            #title=global_country+ get_daterange_str(conf_data["date"]),
+            title=get_selected_countries_str()+ get_daterange_str(conf_data["date"]),
             labels={"confirmed-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
@@ -164,7 +163,7 @@ elif (global_case_type == 'deaths'):
 
     if not special_df_death.empty:
       death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
-              #title=global_country+ get_daterange_str(special_df_death["date"], custom=True),
+              title=get_selected_countries_str()+ get_daterange_str(special_df_death["date"], custom=True),
               labels={"death-count":"number"},
               color="country",
               line_shape="spline", render_mode="svg")
@@ -176,7 +175,7 @@ elif (global_case_type == 'deaths'):
   else:
     # No specific timeline is selected, display all available timeline
     death_fig = px.line(death_data, x="date", y="death-count", hover_name="death-count",
-            #title=global_country+ get_daterange_str(death_data[death_data["country"] == global_country]["date"]),
+            title=get_selected_countries_str()+ get_daterange_str(death_data["date"]),
             labels={"death-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
@@ -195,7 +194,7 @@ else:
 
     if not special_df_recov.empty:
       recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
-                #title=global_country+ get_daterange_str(special_df_recov["date"], custom=True),
+                title=get_selected_countries_str()+ get_daterange_str(special_df_recov["date"], custom=True),
                 labels={"recovered-count":"number"},
                 color="country",
                 line_shape="spline", render_mode="svg")
@@ -207,7 +206,7 @@ else:
   else:
     # No specific timeline is selected, display all available timeline
     recov_fig = px.line(recov_data, x="date", y="recovered-count", hover_name="recovered-count",
-            #title=global_country+ get_daterange_str(recov_data[recov_data["country"] == global_country]["date"]),
+            title=get_selected_countries_str()+ get_daterange_str(recov_data["date"]),
             labels={"recovered-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
