@@ -143,110 +143,116 @@ global_normalization = st.sidebar.radio(
 # End of sidebar code
 
 # Start of plots
-if (global_case_type == "confirmed"):
-  # confirmed cases
-  conf_data = get_confirmed_melted(df_confirmed)
-  conf_data = conf_data[conf_data['country'].isin(global_country)]
+if global_country:
+  if (global_case_type == "confirmed"):
+    # confirmed cases
+    conf_data = get_confirmed_melted(df_confirmed)
+    conf_data = conf_data[conf_data['country'].isin(global_country)]
 
-  # check if asked for normalization
-  if global_normalization == 'yes':
-    conf_data = get_confirmed_norm(conf_data)
+    # check if asked for normalization
+    if global_normalization == 'yes':
+      conf_data = get_confirmed_norm(conf_data)
 
-  # plot
-  st.write('### Reported number of covid cases in '+ get_selected_countries_str())
+    # plot
+    st.write('### Reported number of covid cases in '+ get_selected_countries_str())
 
-  # Check if the user choose a specific timeline
-  if special_timeline:
-    special_df_conf = conf_data[np.logical_and(conf_data["date"].dt.month == global_month, conf_data["date"].dt.year == global_year)]
-    # Check if data is available for selected timeline
-    if not special_df_conf.empty:
-      conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
-            title=get_selected_countries_str()+ get_daterange_str(special_df_conf["date"], custom=True),
-            labels={"confirmed-count":"number"},
-            color="country",
-            line_shape="spline", render_mode="svg")
+    # Check if the user choose a specific timeline
+    if special_timeline:
+      special_df_conf = conf_data[np.logical_and(conf_data["date"].dt.month == global_month, conf_data["date"].dt.year == global_year)]
+      # Check if data is available for selected timeline
+      if not special_df_conf.empty:
+        conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
+              title=get_selected_countries_str()+ get_daterange_str(special_df_conf["date"], custom=True),
+              labels={"confirmed-count":"number"},
+              color="country",
+              line_shape="spline", render_mode="svg")
+        conf_fig.update_layout(hovermode="x")
+        st.plotly_chart(conf_fig)
+      else:
+        # no dataframe available for selected datetime
+        st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
+    else:
+      conf_fig = px.line(conf_data, x="date", y="confirmed-count", hover_name="confirmed-count",
+              title=get_selected_countries_str()+ get_daterange_str(conf_data["date"]),
+              labels={"confirmed-count":"number"},
+              color="country",
+              line_shape="spline", render_mode="svg")
       conf_fig.update_layout(hovermode="x")
       st.plotly_chart(conf_fig)
+  elif (global_case_type == 'deaths'):
+    # death cases
+    death_data = get_deaths_melted(df_deaths)
+    death_data = death_data[death_data['country'].isin(global_country)]
+
+    # check if asked for normalization
+    if global_normalization == 'yes':
+      death_data = get_death_norm(death_data)
+
+    # plot
+    st.write('### Death number of covid cases in '+get_selected_countries_str())
+
+    # Check if the user choose a specific timeline
+    if special_timeline:
+      special_df_death = death_data[np.logical_and(death_data["date"].dt.month == global_month, death_data["date"].dt.year == global_year)]
+
+      if not special_df_death.empty:
+        death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
+                title=get_selected_countries_str()+ get_daterange_str(special_df_death["date"], custom=True),
+                labels={"death-count":"number"},
+                color="country",
+                line_shape="spline", render_mode="svg")
+        death_fig.update_layout(hovermode="x")
+        st.plotly_chart(death_fig)
+      else:
+        # no dataframe available for selected datetime
+        st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
     else:
-      # no dataframe available for selected datetime
-      st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
-  else:
-    conf_fig = px.line(conf_data, x="date", y="confirmed-count", hover_name="confirmed-count",
-            title=get_selected_countries_str()+ get_daterange_str(conf_data["date"]),
-            labels={"confirmed-count":"number"},
-            color="country",
-            line_shape="spline", render_mode="svg")
-    conf_fig.update_layout(hovermode="x")
-    st.plotly_chart(conf_fig)
-elif (global_case_type == 'deaths'):
-  # death cases
-  death_data = get_deaths_melted(df_deaths)
-  death_data = death_data[death_data['country'].isin(global_country)]
-
-  # check if asked for normalization
-  if global_normalization == 'yes':
-    death_data = get_death_norm(death_data)
-
-  # plot
-  st.write('### Death number of covid cases in '+get_selected_countries_str())
-
-  # Check if the user choose a specific timeline
-  if special_timeline:
-    special_df_death = death_data[np.logical_and(death_data["date"].dt.month == global_month, death_data["date"].dt.year == global_year)]
-
-    if not special_df_death.empty:
-      death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
-              title=get_selected_countries_str()+ get_daterange_str(special_df_death["date"], custom=True),
+      # No specific timeline is selected, display all available timeline
+      death_fig = px.line(death_data, x="date", y="death-count", hover_name="death-count",
+              title=get_selected_countries_str()+ get_daterange_str(death_data["date"]),
               labels={"death-count":"number"},
               color="country",
               line_shape="spline", render_mode="svg")
       death_fig.update_layout(hovermode="x")
       st.plotly_chart(death_fig)
-    else:
-      # no dataframe available for selected datetime
-      st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
   else:
-    # No specific timeline is selected, display all available timeline
-    death_fig = px.line(death_data, x="date", y="death-count", hover_name="death-count",
-            title=get_selected_countries_str()+ get_daterange_str(death_data["date"]),
-            labels={"death-count":"number"},
-            color="country",
-            line_shape="spline", render_mode="svg")
-    death_fig.update_layout(hovermode="x")
-    st.plotly_chart(death_fig)
-else:
-  # Consider recovered
-  recov_data = get_recovered_melted(df_recovered)
-  recov_data = recov_data[recov_data['country'].isin(global_country)]
+    # Consider recovered
+    recov_data = get_recovered_melted(df_recovered)
+    recov_data = recov_data[recov_data['country'].isin(global_country)]
 
-  # check if asked for normalization
-  if global_normalization == 'yes':
-    recov_data = get_recovered_norm(recov_data)
+    # check if asked for normalization
+    if global_normalization == 'yes':
+      recov_data = get_recovered_norm(recov_data)
 
-  # plot
-  st.write('### Recovered case of covid in '+get_selected_countries_str())
+    # plot
+    st.write('### Recovered case of covid in '+get_selected_countries_str())
 
-  # Check if the user choose a specific timeline
-  if special_timeline:
-    special_df_recov = recov_data[np.logical_and(recov_data["date"].dt.month == global_month, recov_data["date"].dt.year == global_year)]
+    # Check if the user choose a specific timeline
+    if special_timeline:
+      special_df_recov = recov_data[np.logical_and(recov_data["date"].dt.month == global_month, recov_data["date"].dt.year == global_year)]
 
-    if not special_df_recov.empty:
-      recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
-                title=get_selected_countries_str()+ get_daterange_str(special_df_recov["date"], custom=True),
-                labels={"recovered-count":"number"},
-                color="country",
-                line_shape="spline", render_mode="svg")
+      if not special_df_recov.empty:
+        recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
+                  title=get_selected_countries_str()+ get_daterange_str(special_df_recov["date"], custom=True),
+                  labels={"recovered-count":"number"},
+                  color="country",
+                  line_shape="spline", render_mode="svg")
+        recov_fig.update_layout(hovermode="x")
+        st.plotly_chart(recov_fig)
+      else:
+        # no dataframe available for selected datetime
+        st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
+    else:
+      # No specific timeline is selected, display all available timeline
+      recov_fig = px.line(recov_data, x="date", y="recovered-count", hover_name="recovered-count",
+              title=get_selected_countries_str()+ get_daterange_str(recov_data["date"]),
+              labels={"recovered-count":"number"},
+              color="country",
+              line_shape="spline", render_mode="svg")
       recov_fig.update_layout(hovermode="x")
       st.plotly_chart(recov_fig)
-    else:
-      # no dataframe available for selected datetime
-      st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
-  else:
-    # No specific timeline is selected, display all available timeline
-    recov_fig = px.line(recov_data, x="date", y="recovered-count", hover_name="recovered-count",
-            title=get_selected_countries_str()+ get_daterange_str(recov_data["date"]),
-            labels={"recovered-count":"number"},
-            color="country",
-            line_shape="spline", render_mode="svg")
-    recov_fig.update_layout(hovermode="x")
-    st.plotly_chart(recov_fig)
+else:
+  # no country was selected
+  st.write("No country was selected, choose a country and adjust other parameters on the sidebar at the left.")
+  st.image("https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif", width=400, caption='A random cute cat')
+
