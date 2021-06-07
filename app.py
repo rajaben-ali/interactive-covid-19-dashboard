@@ -75,11 +75,15 @@ def get_available_years():
       get_deaths_melted(df_deaths)['date'].dt.year.unique(), \
       get_recovered_melted(df_recovered)['date'].dt.year.unique()]), axis=0))
 
+@st.cache
+def get_selected_countries_str():
+  return ", ".join([str(x) for x in global_country])
+
 # End of useful functions
 
 # Sidebar Title and description
 st.sidebar.write("""
-# Control data to display here
+## Control data to display here
 """)
 
 with st.sidebar.beta_expander('Selection of datetime'):
@@ -101,11 +105,17 @@ all_possible_countries = np.unique(np.concatenate((get_confirmed_melted(df_confi
   get_deaths_melted(df_deaths)["country"].unique(),
   get_recovered_melted(df_recovered)["country"].unique()), 0))
 
-global_country = st.sidebar.selectbox(
+global_country = st.sidebar.multiselect(
       'Which country do you want to dislay?',
       all_possible_countries)
 
-global_case_type = st.sidebar.radio('Select case types', ["confirmed","deaths", "recovered"]) # Dynamically get possible years from datasets
+global_case_type = st.sidebar.radio(
+  'Select case types',
+  ["confirmed","deaths", "recovered"])
+
+global_normalization = st.sidebar.radio(
+  'Select data normalization',
+  ["yes - normalized over 100k","no"])
 
 # End of sidebar code
 
@@ -113,18 +123,17 @@ global_case_type = st.sidebar.radio('Select case types', ["confirmed","deaths", 
 if (global_case_type == "confirmed"):
   # confirmed cases
   conf_data = get_confirmed_melted(df_confirmed)
+  conf_data = conf_data[conf_data['country'].isin(global_country)]
   # plot
-  st.write('### Reported number of covid cases in '+global_country)
+  st.write('### Reported number of covid cases in '+ get_selected_countries_str())
 
   # Check if the user choose a specific timeline
   if special_timeline:
-    special_df_conf = conf_data[conf_data["country"] == global_country]
-    special_df_conf = special_df_conf[np.logical_and(special_df_conf["date"].dt.month == global_month, special_df_conf["date"].dt.year == global_year)]
-
+    special_df_conf = conf_data[np.logical_and(conf_data["date"].dt.month == global_month, conf_data["date"].dt.year == global_year)]
     # Check if data is available for selected timeline
     if not special_df_conf.empty:
       conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
-            title=global_country+ get_daterange_str(special_df_conf["date"], custom=True),
+            #title=global_country+ get_daterange_str(special_df_conf["date"], custom=True),
             labels={"confirmed-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
@@ -134,8 +143,9 @@ if (global_case_type == "confirmed"):
       # no dataframe available for selected datetime
       st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
   else:
-    conf_fig = px.line(conf_data[conf_data["country"] == global_country], x="date", y="confirmed-count", hover_name="confirmed-count",
-            title=global_country+ get_daterange_str(conf_data[conf_data["country"] == global_country]["date"]),
+    st.write('here')
+    conf_fig = px.line(conf_data, x="date", y="confirmed-count", hover_name="confirmed-count",
+            #title=global_country+ get_daterange_str(conf_data["date"]),
             labels={"confirmed-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
@@ -144,17 +154,17 @@ if (global_case_type == "confirmed"):
 elif (global_case_type == 'deaths'):
   # death cases
   death_data = get_deaths_melted(df_deaths)
+  death_data = death_data[death_data['country'].isin(global_country)]
   # plot
-  st.write('### Death number of covid cases in '+global_country)
+  st.write('### Death number of covid cases in '+get_selected_countries_str())
 
   # Check if the user choose a specific timeline
   if special_timeline:
-    special_df_death = death_data[death_data["country"] == global_country]
-    special_df_death = special_df_death[np.logical_and(special_df_death["date"].dt.month == global_month, special_df_death["date"].dt.year == global_year)]
+    special_df_death = death_data[np.logical_and(death_data["date"].dt.month == global_month, death_data["date"].dt.year == global_year)]
 
     if not special_df_death.empty:
       death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
-              title=global_country+ get_daterange_str(special_df_death["date"], custom=True),
+              #title=global_country+ get_daterange_str(special_df_death["date"], custom=True),
               labels={"death-count":"number"},
               color="country",
               line_shape="spline", render_mode="svg")
@@ -165,8 +175,8 @@ elif (global_case_type == 'deaths'):
       st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
   else:
     # No specific timeline is selected, display all available timeline
-    death_fig = px.line(death_data[death_data["country"] == global_country], x="date", y="death-count", hover_name="death-count",
-            title=global_country+ get_daterange_str(death_data[death_data["country"] == global_country]["date"]),
+    death_fig = px.line(death_data, x="date", y="death-count", hover_name="death-count",
+            #title=global_country+ get_daterange_str(death_data[death_data["country"] == global_country]["date"]),
             labels={"death-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
@@ -175,17 +185,17 @@ elif (global_case_type == 'deaths'):
 else:
   # Consider recovered
   recov_data = get_recovered_melted(df_recovered)
+  recov_data = recov_data[recov_data['country'].isin(global_country)]
   # plot
-  st.write('### Recovered case of covid in '+global_country)
+  st.write('### Recovered case of covid in '+get_selected_countries_str())
 
   # Check if the user choose a specific timeline
   if special_timeline:
-    special_df_recov = recov_data[recov_data["country"] == global_country]
-    special_df_recov = special_df_recov[np.logical_and(special_df_recov["date"].dt.month == global_month, special_df_recov["date"].dt.year == global_year)]
+    special_df_recov = recov_data[np.logical_and(recov_data["date"].dt.month == global_month, recov_data["date"].dt.year == global_year)]
 
     if not special_df_recov.empty:
       recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
-                title=global_country+ get_daterange_str(special_df_recov["date"], custom=True),
+                #title=global_country+ get_daterange_str(special_df_recov["date"], custom=True),
                 labels={"recovered-count":"number"},
                 color="country",
                 line_shape="spline", render_mode="svg")
@@ -196,8 +206,8 @@ else:
       st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
   else:
     # No specific timeline is selected, display all available timeline
-    recov_fig = px.line(recov_data[recov_data["country"] == global_country], x="date", y="recovered-count", hover_name="recovered-count",
-            title=global_country+ get_daterange_str(recov_data[recov_data["country"] == global_country]["date"]),
+    recov_fig = px.line(recov_data, x="date", y="recovered-count", hover_name="recovered-count",
+            #title=global_country+ get_daterange_str(recov_data[recov_data["country"] == global_country]["date"]),
             labels={"recovered-count":"number"},
             color="country",
             line_shape="spline", render_mode="svg")
