@@ -38,24 +38,47 @@ def get_confirmed_melted(df):
   df = df.melt(id_vars=["province", "country"], var_name='date', value_name='confirmed-count')
   df['date'] = pd.to_datetime(df['date'])
   return df
-  #return data.sort_values(by='confirmed-count', axis=0, ascending=False)
 
 @st.cache
 def get_deaths_melted(df):
   df = df.melt(id_vars=["province", "country"], var_name='date', value_name='death-count')
   df['date'] = pd.to_datetime(df['date'])
   return df
-  #return data.sort_values(by='death-count', axis=0, ascending=False)
 
 @st.cache
 def get_recovered_melted(df):
   df = df.melt(id_vars=["province", "country"], var_name='date', value_name='recovered-count')
   df['date'] = pd.to_datetime(df['date'])
   return df
-  #return data.sort_values(by='recovered-count', axis=0, ascending=False)
+
+# TODO: To implement like the previous functions (get_recovered_melted)
+# make sure to use the melted version of df using previous functions
 
 # Cumulative data - with streamlit cache
-# TODO:
+@st.cache
+def get_confirmed_cumul(df):
+  return df
+
+@st.cache
+def get_death_cumul(df):
+  return df
+
+@st.cache
+def get_recovered_cumul(df):
+  return df
+
+# Normalized data - with streamlit cache
+@st.cache
+def get_confirmed_norm(df):
+  return df[df['confirmed-count'] < 100000]
+
+@st.cache
+def get_death_norm(df):
+  return df[df['death-count'] < 100000]
+
+@st.cache
+def get_recovered_norm(df):
+  return df[df['recovered-count'] < 100000]
 
 # TODO: Add normalized columns to the three csv files
 
@@ -114,8 +137,8 @@ global_case_type = st.sidebar.radio(
   ["confirmed","deaths", "recovered"])
 
 global_normalization = st.sidebar.radio(
-  'Select data normalization',
-  ["yes - normalized over 100k","no"])
+  'Select data normalization - over 100k',
+  ["yes","no"])
 
 # End of sidebar code
 
@@ -124,6 +147,11 @@ if (global_case_type == "confirmed"):
   # confirmed cases
   conf_data = get_confirmed_melted(df_confirmed)
   conf_data = conf_data[conf_data['country'].isin(global_country)]
+
+  # check if asked for normalization
+  if global_normalization == 'yes':
+    conf_data = get_confirmed_norm(conf_data)
+
   # plot
   st.write('### Reported number of covid cases in '+ get_selected_countries_str())
 
@@ -154,6 +182,11 @@ elif (global_case_type == 'deaths'):
   # death cases
   death_data = get_deaths_melted(df_deaths)
   death_data = death_data[death_data['country'].isin(global_country)]
+
+  # check if asked for normalization
+  if global_normalization == 'yes':
+    death_data = get_death_norm(death_data)
+
   # plot
   st.write('### Death number of covid cases in '+get_selected_countries_str())
 
@@ -185,6 +218,11 @@ else:
   # Consider recovered
   recov_data = get_recovered_melted(df_recovered)
   recov_data = recov_data[recov_data['country'].isin(global_country)]
+
+  # check if asked for normalization
+  if global_normalization == 'yes':
+    recov_data = get_recovered_norm(recov_data)
+
   # plot
   st.write('### Recovered case of covid in '+get_selected_countries_str())
 
