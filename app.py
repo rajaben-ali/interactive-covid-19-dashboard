@@ -86,7 +86,7 @@ def get_death_norm(df):
   df['number_per_capita']= df['Count']/df['Population_million']
   df = df.round({'number_per_capita': 0})
   df["Date"] = df["Date"].astype('datetime64[ns]')
-  return df[df['death-count'] < 100000]
+  return
 
 @st.cache
 def get_recovered_norm(df):
