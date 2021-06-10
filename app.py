@@ -21,6 +21,8 @@ def load_data():
   recovered = pd.read_csv("./data/time_series_covid19_recovered_global.csv").drop(columns_to_be_removed, axis = 'columns')
   return confirmed, deaths, recovered
 
+df_population = pd.read_csv("./data/population_by_country.csv")
+
 df_confirmed, df_deaths, df_recovered = load_data()
 
 # Formatting of data
@@ -54,7 +56,7 @@ def get_recovered_melted(df):
 # TODO: To implement like the previous functions (get_recovered_melted)
 # make sure to use the melted version of df using previous functions
 
-# Cumulative data - with streamlit cache
+# Cumulative data - with streamlit cache -normalized
 @st.cache
 def get_confirmed_cumul(df):
   return df
@@ -70,15 +72,31 @@ def get_recovered_cumul(df):
 # Normalized data - with streamlit cache
 @st.cache
 def get_confirmed_norm(df):
-  return df[df['confirmed-count'] < 100000]
+  df = pd.merge(df, df_population,how = 'inner', left_on = 'Country/Region' , right_on = 'Country')
+  df['Population_million'] = df['Population']/1000000
+  df['number_per_capita']= df['Count']/df['Population_million']
+  df = df.round({'number_per_capita': 0})
+  df["Date"] = df["Date"].astype('datetime64[ns]')
+  return df
 
 @st.cache
 def get_death_norm(df):
+  df = pd.merge(df, df_population,how = 'inner', left_on = 'Country/Region' , right_on = 'Country')
+  df['Population_million'] = df['Population']/1000000
+  df['number_per_capita']= df['Count']/df['Population_million']
+  df = df.round({'number_per_capita': 0})
+  df["Date"] = df["Date"].astype('datetime64[ns]')
   return df[df['death-count'] < 100000]
 
 @st.cache
 def get_recovered_norm(df):
-  return df[df['recovered-count'] < 100000]
+  df = pd.merge(df, df_population,how = 'inner', left_on = 'Country/Region' , right_on = 'Country')
+  df['Population_million'] = df['Population']/1000000
+  df['number_per_capita']= df['Count']/df['Population_million']
+  df = df.round({'number_per_capita': 0})
+  df["Date"] = df["Date"].astype('datetime64[ns]')
+  return df
+ 
 
 # TODO: Add normalized columns to the three csv files
 
