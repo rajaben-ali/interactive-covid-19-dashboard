@@ -19,11 +19,10 @@ def load_data():
   confirmed = pd.read_csv("./data/time_series_covid19_confirmed_global.csv").drop(columns_to_be_removed, axis = 'columns')
   deaths = pd.read_csv("./data/time_series_covid19_deaths_global.csv").drop(columns_to_be_removed, axis = 'columns')
   recovered = pd.read_csv("./data/time_series_covid19_recovered_global.csv").drop(columns_to_be_removed, axis = 'columns')
-  return confirmed, deaths, recovered
+  population = pd.read_csv("./data/population_by_country.csv")
+  return confirmed, deaths, recovered, population
 
-df_population = pd.read_csv("./data/population_by_country.csv")
-
-df_confirmed, df_deaths, df_recovered = load_data()
+df_confirmed, df_deaths, df_recovered, df_population = load_data()
 
 # Formatting of data
 @st.cache
