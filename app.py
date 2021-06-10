@@ -96,9 +96,6 @@ def get_recovered_norm(df):
   df["date"] = df["date"].astype('datetime64[ns]')
   return df
 
-
-# TODO: Add normalized columns to the three csv files
-
 # Useful functions
 def get_daterange_str(date_col, custom=False):
   if custom:
@@ -156,13 +153,12 @@ global_case_type = st.sidebar.radio(
   ["confirmed","deaths", "recovered"])
 
 global_normalization = st.sidebar.radio(
-  'Select data normalization - over 100k',
+  'Select data normalization',
   ["yes","no"])
 
 global_country_to_compare = st.sidebar.selectbox(
   'Choose a country to compare confirmed and recovered cases',
   all_possible_countries)
-
 
 # End of sidebar code
 
@@ -185,11 +181,11 @@ if global_country:
       special_df_conf = conf_data[np.logical_and(conf_data["date"].dt.month == global_month, conf_data["date"].dt.year == global_year)]
       # Check if data is available for selected timeline
       if not special_df_conf.empty:
-        conf_fig = px.scatter(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
+        conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
               title=get_selected_countries_str()+ get_daterange_str(special_df_conf["date"], custom=True),
               labels={"confirmed-count":"number"},
               color="country",
-              #line_shape="spline", 
+              line_shape="spline",
               render_mode="svg")
         conf_fig.update_layout(hovermode="x")
         st.plotly_chart(conf_fig)
@@ -197,11 +193,11 @@ if global_country:
         # no dataframe available for selected datetime
         st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
     else:
-      conf_fig = px.scatter(conf_data, x="date", y="confirmed-count", hover_name="confirmed-count",
+      conf_fig = px.line(conf_data, x="date", y="confirmed-count", hover_name="confirmed-count",
               title=get_selected_countries_str()+ get_daterange_str(conf_data["date"]),
               labels={"confirmed-count":"number"},
               color="country",
-              #line_shape="spline",
+              line_shape="spline",
               render_mode="svg")
       conf_fig.update_layout(hovermode="x")
       st.plotly_chart(conf_fig)
@@ -222,11 +218,11 @@ if global_country:
       special_df_death = death_data[np.logical_and(death_data["date"].dt.month == global_month, death_data["date"].dt.year == global_year)]
 
       if not special_df_death.empty:
-        death_fig = px.lscatter(special_df_death, x="date", y="death-count", hover_name="death-count",
+        death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
                 title=get_selected_countries_str()+ get_daterange_str(special_df_death["date"], custom=True),
                 labels={"death-count":"number"},
                 color="country",
-                #line_shape="spline", 
+                line_shape="spline",
                 render_mode="svg")
         death_fig.update_layout(hovermode="x")
         st.plotly_chart(death_fig)
@@ -235,11 +231,11 @@ if global_country:
         st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
     else:
       # No specific timeline is selected, display all available timeline
-      death_fig = px.scatter(death_data, x="date", y="death-count", hover_name="death-count",
+      death_fig = px.line(death_data, x="date", y="death-count", hover_name="death-count",
               title=get_selected_countries_str()+ get_daterange_str(death_data["date"]),
               labels={"death-count":"number"},
               color="country",
-              #line_shape="spline", 
+              line_shape="spline",
               render_mode="svg")
       death_fig.update_layout(hovermode="x")
       st.plotly_chart(death_fig)
@@ -260,11 +256,11 @@ if global_country:
       special_df_recov = recov_data[np.logical_and(recov_data["date"].dt.month == global_month, recov_data["date"].dt.year == global_year)]
 
       if not special_df_recov.empty:
-        recov_fig = px.scatter(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
+        recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
                   title=get_selected_countries_str()+ get_daterange_str(special_df_recov["date"], custom=True),
                   labels={"recovered-count":"number"},
                   color="country",
-                  #line_shape="spline", 
+                  line_shape="spline",
                   render_mode="svg")
         recov_fig.update_layout(hovermode="x")
         st.plotly_chart(recov_fig)
@@ -273,11 +269,11 @@ if global_country:
         st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
     else:
       # No specific timeline is selected, display all available timeline
-      recov_fig = px.scatter(recov_data, x="date", y="recovered-count", hover_name="recovered-count",
+      recov_fig = px.line(recov_data, x="date", y="recovered-count", hover_name="recovered-count",
               title=get_selected_countries_str()+ get_daterange_str(recov_data["date"]),
               labels={"recovered-count":"number"},
               color="country",
-              #line_shape="spline", 
+              line_shape="spline",
               render_mode="svg")
       recov_fig.update_layout(hovermode="x")
       st.plotly_chart(recov_fig)
@@ -287,7 +283,7 @@ else:
   st.image("https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif", width=400, caption='A random cute cat')
 
 if global_country_to_compare:
-  confirmed_data = get_confirmed_melted(df_confirmed) 
+  confirmed_data = get_confirmed_melted(df_confirmed)
   confirmed_data = confirmed_data[confirmed_data['country'] == global_country_to_compare]
   confirmed_data = get_confirmed_norm(confirmed_data)
   confirmed_data = confirmed_data.groupby(["date", 'country'], as_index=False).agg({'number_per_capita':'sum','confirmed-count':'sum'}).set_index('date')
@@ -298,14 +294,13 @@ if global_country_to_compare:
   confirmed_data = confirmed_data.rename(columns={'number_per_capita':'confirmed_number'})
   recovered_data = recovered_data.rename(columns={'number_per_capita':'recovered_number'})
   merged = pd.merge(confirmed_data,recovered_data, how='left',left_index = True, right_index = True).reset_index()
-  fig_merged = px.scatter(merged, x = 'date', y = ['confirmed_number','recovered_number'])
+  fig_merged = px.line(merged, x = 'date', y = ['confirmed_number','recovered_number'], line_shape="spline")
   fig_merged.update_layout(
     title="The trend of Recovered and Confirmed Covid cases",
     xaxis_title="date",
-    yaxis_title="Number of cases"
-       
+    yaxis_title="Number of cases",
     )
   st.write('### Confirmed and Recovered cases in '+ global_country_to_compare)
   st.plotly_chart(fig_merged)
-else: 
+else:
   st.write("No country was selected. Choose a country to compare recovered and confirmed cases")
