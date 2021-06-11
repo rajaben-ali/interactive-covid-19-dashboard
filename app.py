@@ -149,7 +149,7 @@ with st.sidebar.beta_expander('Selection of datetime'):
     global_month = None
 
 with st.sidebar.beta_expander('Selection of counting method'):
-  global_method = st.radio('Select method', ["daily cases","cumulated number"])
+  global_method = st.radio('Select method', ["cumulated number", "daily cases"])
 
 # TODO: Cache the variable 'all_possible_countries'
 all_possible_countries = np.unique(np.concatenate((get_confirmed_melted(df_confirmed)["country"].unique(),
@@ -166,7 +166,7 @@ global_case_type = st.sidebar.radio(
 
 global_normalization = st.sidebar.radio(
   'Select data normalization',
-  ["yes","no"])
+  ["no","yes"])
 
 global_country_to_compare = st.sidebar.selectbox(
   'Choose a country to compare confirmed and recovered cases',
