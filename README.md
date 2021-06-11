@@ -1,5 +1,7 @@
 # interactive-covid-19-dashboard
 
+[![SWH](https://archive.softwareheritage.org/badge/swh:1:dir:898f46bbc89e269fefa6e99fbb72a53a5ad4a471/)](https://archive.softwareheritage.org/swh:1:dir:898f46bbc89e269fefa6e99fbb72a53a5ad4a471;origin=https://github.com/rajaben-ali/interactive-covid-19-dashboard.git;visit=swh:1:snp:70ee5afa30ac8bd3171b4f82e7cadb3530eb5920;anchor=swh:1:rev:9df31fd3baefc9c04ce8594ee547064504ec1d2d)
+
 ## **About this project**
 
 The "interactive covid-19 dashboard" project is based on the dataset provided by [Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19). The dashboard allows users to visualize the number of Covid-19 cases or deaths per country as a function of time.
