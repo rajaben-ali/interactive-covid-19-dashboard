@@ -9,7 +9,9 @@ with st.beta_expander('Project description'):
   st.write("""
   The "interactive covid-19 dashboard" project is based on the dataset provided
   by [Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19).
-  The dashboard allows users to visualize the number of Covid-19 cases or deaths per country as a function of time.
+  The dashboard allows users to visualize the number of Covid-19 cases, deaths or recovered cases per country as a function of time.
+
+  [Github repository for this project](https://github.com/rajaben-ali/interactive-covid-19-dashboard/)
   """)
 
 # Load the csv files
