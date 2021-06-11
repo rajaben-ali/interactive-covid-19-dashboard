@@ -55,6 +55,19 @@ def get_recovered_melted(df):
 # TODO: To implement like the previous functions (get_recovered_melted)
 # make sure to use the melted version of df using previous functions
 
+# Daily data
+@st.cache
+def get_confirmed_daily(df):
+  return df
+
+@st.cache
+def get_deaths_daily(df):
+  return df
+
+@st.cache
+def get_recovered_daily(df):
+  return df
+
 # Cumulative data - with streamlit cache -normalized
 @st.cache
 def get_confirmed_cumul(df):
@@ -117,7 +130,6 @@ def get_selected_countries_str():
   return ", ".join([str(x) for x in global_country])
 
 
-
 # End of useful functions
 
 # Sidebar Title and description
@@ -137,7 +149,7 @@ with st.sidebar.beta_expander('Selection of datetime'):
     global_month = None
 
 with st.sidebar.beta_expander('Selection of counting method'):
-  global_method = st.radio('Select method', ["number","cumulated number", "7-day rolling average"])
+  global_method = st.radio('Select method', ["daily cases","cumulated number"])
 
 # TODO: Cache the variable 'all_possible_countries'
 all_possible_countries = np.unique(np.concatenate((get_confirmed_melted(df_confirmed)["country"].unique(),
@@ -172,6 +184,11 @@ if global_country:
     # check if asked for normalization
     if global_normalization == 'yes':
       conf_data = get_confirmed_norm(conf_data)
+    # check if asked for cumulated number
+    if global_method == "cumulated number":
+      conf_data = get_confirmed_cumul(conf_data)
+    elif global_method == "daily cases":
+      conf_data = get_confirmed_daily(conf_data)
 
     # plot
     st.write('### Reported number of covid cases in '+ get_selected_countries_str())
@@ -209,6 +226,11 @@ if global_country:
     # check if asked for normalization
     if global_normalization == 'yes':
       death_data = get_death_norm(death_data)
+    # check if asked for cumulated number
+    if global_method == "cumulated number":
+      death_data = get_death_cumul(death_data)
+    elif global_method == "daily cases":
+      death_data = get_deaths_daily(death_data)
 
     # plot
     st.write('### Death number of covid cases in '+get_selected_countries_str())
@@ -247,6 +269,11 @@ if global_country:
     # check if asked for normalization
     if global_normalization == 'yes':
       recov_data = get_recovered_norm(recov_data)
+    # check if asked for cumulated number
+    if global_method == "cumulated number":
+      recov_data = get_recovered_cumul(recov_data)
+    elif global_method == "daily cases":
+      recov_data = get_recovered_daily(recov_data)
 
     # plot
     st.write('### Recovered case of covid in '+get_selected_countries_str())
