@@ -319,24 +319,23 @@ def get_recovered_norm_second(df):
   return df
 
 if global_country_to_compare:
-  confirmed_data = get_confirmed_melted(df_confirmed)
-  confirmed_data = confirmed_data[confirmed_data['country'] == global_country_to_compare]
-  confirmed_data = get_confirmed_norm_second(confirmed_data)
-  confirmed_data = confirmed_data.groupby(["date", 'country'], as_index=False).agg({'number_per_capita':'sum','confirmed-count':'sum'}).set_index('date')
-  recovered_data = get_recovered_melted(df_recovered)
-  recovered_data = recovered_data[recovered_data['country'] == global_country_to_compare]
-  recovered_data = get_recovered_norm_second(recovered_data)
-  recovered_data = recovered_data.groupby(["date", 'country'], as_index=False).agg({'number_per_capita':'sum','recovered-count':'sum'}).set_index('date')
-  confirmed_data = confirmed_data.rename(columns={'number_per_capita':'confirmed_number'})
-  recovered_data = recovered_data.rename(columns={'number_per_capita':'recovered_number'})
-  merged = pd.merge(confirmed_data,recovered_data, how='left',left_index = True, right_index = True).reset_index()
-  fig_merged = px.line(merged, x = 'date', y = ['confirmed_number','recovered_number'], line_shape="spline")
-  fig_merged.update_layout(
-    title="The trend of Recovered and Confirmed Covid cases",
+  d_c = get_confirmed_melted(df_confirmed[df_confirmed["country"] == global_country_to_compare])
+  d_r = get_recovered_melted(df_recovered[df_recovered['country'] == global_country_to_compare])
+  column_plot_compare_1 = "confirmed-count"
+  column_plot_compare_2 = "recovered-count"
+
+  if global_normalization == "yes":
+    d_c = get_confirmed_norm(d_c)
+    d_r = get_recovered_norm(d_r)
+    column_plot_compare_1 = "confirmed-count-norm"
+    column_plot_compare_2 = "recovered-count-norm"
+
+  f = px.line(d_c, x="date", y=column_plot_compare_1, title='The trend of recovered and confirmed covid cases')
+  f.add_scatter(x=d_r['date'], y=d_r[column_plot_compare_2], mode='lines', hovertext=d_r[column_plot_compare_2])
+  f.update_layout(
     xaxis_title="date",
     yaxis_title="Number of cases",
     )
-  st.write('### Confirmed and Recovered cases in '+ global_country_to_compare)
-  st.plotly_chart(fig_merged)
+  st.plotly_chart(f)
 else:
   st.write("No country was selected. Choose a country to compare recovered and confirmed cases")
