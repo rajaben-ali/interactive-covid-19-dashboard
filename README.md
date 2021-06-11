@@ -4,7 +4,7 @@
 
 ## **About this project**
 
-The "interactive covid-19 dashboard" project is based on the dataset provided by [Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19). The dashboard allows users to visualize the number of Covid-19 cases or deaths per country as a function of time.
+The "interactive covid-19 dashboard" project is based on the dataset provided by [Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19). The dashboard allows users to visualize the number of Covid-19 cases, deaths or recovered cases per country as a function of time.
 
 ## Streamlit sharing
 Use this link to access directly the dashboard on the streamlit sharing plateform: [interactive dashboard link](https://share.streamlit.io/rajaben-ali/interactive-covid-19-dashboard/main/app.py)
@@ -12,8 +12,7 @@ Use this link to access directly the dashboard on the streamlit sharing platefor
 ## **Tools**
 **Python** for streamlit script, **Pandas** for data extraction and manipulation, **Plotly** for the interactive plots
 
-### Dashboard systems
-Streamlit
+**Streamlit** as the Dashboard systems
 
 # Setup configurations
 Clone the repository on your device.
