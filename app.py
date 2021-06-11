@@ -37,36 +37,25 @@ format_data()
 @st.cache
 def get_confirmed_melted(df):
   df = df.melt(id_vars=["province", "country"], var_name='date', value_name='confirmed-count')
-  df['date'] = pd.to_datetime(df['date'], format="%m/%d/%y")
+  df['date'] = pd.to_datetime(df['date'])
   df['date'] = df['date'].dt.date
+  df = df.groupby(['date', 'country']).sum().reset_index()
   return df
 
 @st.cache
 def get_deaths_melted(df):
   df = df.melt(id_vars=["province", "country"], var_name='date', value_name='death-count')
   df['date'] = pd.to_datetime(df['date'])
+  df['date'] = df['date'].dt.date
+  df = df.groupby(['date', 'country']).sum().reset_index()
   return df
 
 @st.cache
 def get_recovered_melted(df):
   df = df.melt(id_vars=["province", "country"], var_name='date', value_name='recovered-count')
   df['date'] = pd.to_datetime(df['date'])
-  return df
-
-# TODO: To implement like the previous functions (get_recovered_melted)
-# make sure to use the melted version of df using previous functions
-
-# Daily data
-@st.cache
-def get_confirmed_daily(df):
-  return df
-
-@st.cache
-def get_deaths_daily(df):
-  return df
-
-@st.cache
-def get_recovered_daily(df):
+  df['date'] = df['date'].dt.date
+  df = df.groupby(['date', 'country']).sum().reset_index()
   return df
 
 # Cumulative data - with streamlit cache -normalized
@@ -86,36 +75,29 @@ def get_recovered_cumul(df):
 @st.cache
 def getnorm(df):
   df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on = 'Country')
-  df["date"] = pd.to_datetime(df["date"], format="%m-%d-%y")
   tmp = df["Population"] / 100000
-  df["confirmed-count"] = df["confirmed-count"] / tmp
+  df["confirmed-count-norm"] = df["confirmed-count"] / tmp
   return df
 
 @st.cache
 def get_confirmed_norm(df):
   df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on = 'Country')
-  df['Population_million'] = df['Population']/1000000
-  df['number_per_capita']= df['confirmed-count']/df['Population_million']
-  df = df.round({'number_per_capita': 0})
-  df["date"] = df["date"].astype('datetime64[ns]')
+  tmp = df["Population"] / 100000
+  df["confirmed-count-norm"] = df["confirmed-count"] / tmp
   return df
 
 @st.cache
 def get_death_norm(df):
   df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on = 'Country')
-  df['Population_million'] = df['Population']/1000000
-  df['number_per_capita']= df['death-count']/df['Population_million']
-  df = df.round({'number_per_capita': 0})
-  df["date"] = df["date"].astype('datetime64[ns]')
+  tmp = df["Population"] / 100000
+  df["death-count-norm"] = df["death-count"] / tmp
   return df
 
 @st.cache
 def get_recovered_norm(df):
   df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on = 'Country')
-  df['Population_million'] = df['Population']/1000000
-  df['number_per_capita']= df['recovered-count']/df['Population_million']
-  df = df.round({'number_per_capita': 0})
-  df["date"] = df["date"].astype('datetime64[ns]')
+  tmp = df["Population"] / 100000
+  df["recovered-count-norm"] = df["recovered-count"] / tmp
   return df
 
 # Useful functions
@@ -123,16 +105,17 @@ def get_daterange_str(date_col, custom=False):
   if custom:
     date_range = str(global_month) +"-"+ str(global_year)
     return " in " + date_range
-  start_d = date_col.dt.date.min()
-  end_d = date_col.dt.date.max()
+  start_d = date_col.min()
+  end_d = date_col.max()
   return " from " + str(start_d.day) +"-"+ str(start_d.month) +"-"+ str(start_d.year) \
     + " to " + str(end_d.day) +"-"+ str(end_d.month) +"-"+ str(end_d.year)
 
 @st.cache
 def get_available_years():
-  return list(np.unique(np.concatenate([get_confirmed_melted(df_confirmed)['date'].dt.year.unique(), \
-      get_deaths_melted(df_deaths)['date'].dt.year.unique(), \
-      get_recovered_melted(df_recovered)['date'].dt.year.unique()]), axis=0))
+  conf = pd.to_datetime(get_confirmed_melted(df_confirmed)['date']).dt.year.unique()
+  death = pd.to_datetime(get_deaths_melted(df_deaths)['date']).dt.year.unique()
+  recov = pd.to_datetime(get_recovered_melted(df_recovered)['date']).dt.year.unique()
+  return list(np.unique(np.concatenate([conf,death, recov]), axis=0))
 
 @st.cache
 def get_selected_countries_str():
@@ -156,9 +139,6 @@ with st.sidebar.beta_expander('Selection of datetime'):
     st.write("No specific timeline is used, the dashboard will display the overall timeline.")
     global_year = None
     global_month = None
-
-with st.sidebar.beta_expander('Selection of counting method'):
-  global_method = st.radio('Select method', ["cumulated number", "daily cases"])
 
 # TODO: Cache the variable 'all_possible_countries'
 all_possible_countries = np.unique(np.concatenate((get_confirmed_melted(df_confirmed)["country"].unique(),
@@ -189,29 +169,27 @@ if global_country:
     # confirmed cases
     conf_data = get_confirmed_melted(df_confirmed)
     conf_data = conf_data[conf_data['country'].isin(global_country)]
+    column_plot = "confirmed-count"
 
     # check if asked for normalization
     if global_normalization == 'yes':
-      #conf_data = get_confirmed_norm(conf_data)
-      conf_data = getnorm(conf_data)
-      conf_data
-    # check if asked for cumulated number
-    if global_method == "cumulated number":
-      conf_data = get_confirmed_cumul(conf_data)
-    elif global_method == "daily cases":
-      conf_data = get_confirmed_daily(conf_data)
+      conf_data = get_confirmed_norm(conf_data)
+      column_plot = "confirmed-count-norm"
 
     # plot
     st.write('### Reported number of covid cases in '+ get_selected_countries_str())
 
     # Check if the user choose a specific timeline
     if special_timeline:
-      special_df_conf = conf_data[np.logical_and(conf_data["date"].dt.month == global_month, conf_data["date"].dt.year == global_year)]
+      t_month = pd.to_datetime(conf_data["date"]).dt.month
+      t_year = pd.to_datetime(conf_data["date"]).dt.year
+
+      special_df_conf = conf_data[np.logical_and(t_month == global_month, t_year == global_year)]
       # Check if data is available for selected timeline
       if not special_df_conf.empty:
-        conf_fig = px.line(special_df_conf, x="date", y="confirmed-count", hover_name="confirmed-count",
+        conf_fig = px.line(special_df_conf, x="date", y=column_plot, hover_name=column_plot,
               title=get_selected_countries_str()+ get_daterange_str(special_df_conf["date"], custom=True),
-              labels={"confirmed-count":"number"},
+              labels={column_plot:"number"},
               color="country",
               line_shape="spline",
               render_mode="svg")
@@ -221,9 +199,9 @@ if global_country:
         # no dataframe available for selected datetime
         st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
     else:
-      conf_fig = px.line(conf_data, x="date", y="confirmed-count", hover_name="confirmed-count",
+      conf_fig = px.line(conf_data, x="date", y=column_plot, hover_name=column_plot,
               title=get_selected_countries_str()+ get_daterange_str(conf_data["date"]),
-              labels={"confirmed-count":"number"},
+              labels={column_plot:"number"},
               color="country",
               render_mode="svg")
       conf_fig.update_layout(hovermode="x")
@@ -232,27 +210,27 @@ if global_country:
     # death cases
     death_data = get_deaths_melted(df_deaths)
     death_data = death_data[death_data['country'].isin(global_country)]
+    column_plot_d = "death-count"
 
     # check if asked for normalization
     if global_normalization == 'yes':
       death_data = get_death_norm(death_data)
-    # check if asked for cumulated number
-    if global_method == "cumulated number":
-      death_data = get_death_cumul(death_data)
-    elif global_method == "daily cases":
-      death_data = get_deaths_daily(death_data)
+      column_plot_d = "death-count-norm"
 
     # plot
     st.write('### Death number of covid cases in '+get_selected_countries_str())
 
     # Check if the user choose a specific timeline
     if special_timeline:
-      special_df_death = death_data[np.logical_and(death_data["date"].dt.month == global_month, death_data["date"].dt.year == global_year)]
+      t_month_d = pd.to_datetime(death_data["date"]).dt.month
+      t_year_d = pd.to_datetime(death_data["date"]).dt.year
+
+      special_df_death = death_data[np.logical_and(t_month_d == global_month, t_year_d == global_year)]
 
       if not special_df_death.empty:
-        death_fig = px.line(special_df_death, x="date", y="death-count", hover_name="death-count",
+        death_fig = px.line(special_df_death, x="date", y=column_plot_d, hover_name=column_plot_d,
                 title=get_selected_countries_str()+ get_daterange_str(special_df_death["date"], custom=True),
-                labels={"death-count":"number"},
+                labels={column_plot_d:"number"},
                 color="country",
                 line_shape="spline",
                 render_mode="svg")
@@ -263,9 +241,9 @@ if global_country:
         st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
     else:
       # No specific timeline is selected, display all available timeline
-      death_fig = px.line(death_data, x="date", y="death-count", hover_name="death-count",
+      death_fig = px.line(death_data, x="date", y=column_plot_d, hover_name=column_plot_d,
               title=get_selected_countries_str()+ get_daterange_str(death_data["date"]),
-              labels={"death-count":"number"},
+              labels={column_plot_d:"number"},
               color="country",
               line_shape="spline",
               render_mode="svg")
@@ -275,27 +253,27 @@ if global_country:
     # Consider recovered
     recov_data = get_recovered_melted(df_recovered)
     recov_data = recov_data[recov_data['country'].isin(global_country)]
+    column_plot_r = "recovered-count"
 
     # check if asked for normalization
     if global_normalization == 'yes':
       recov_data = get_recovered_norm(recov_data)
-    # check if asked for cumulated number
-    if global_method == "cumulated number":
-      recov_data = get_recovered_cumul(recov_data)
-    elif global_method == "daily cases":
-      recov_data = get_recovered_daily(recov_data)
+      column_plot_r = "recovered-count-norm"
 
     # plot
     st.write('### Recovered case of covid in '+get_selected_countries_str())
 
     # Check if the user choose a specific timeline
     if special_timeline:
-      special_df_recov = recov_data[np.logical_and(recov_data["date"].dt.month == global_month, recov_data["date"].dt.year == global_year)]
+      t_month_r = pd.to_datetime(recov_data["date"]).dt.month
+      t_year_r = pd.to_datetime(recov_data["date"]).dt.year
+
+      special_df_recov = recov_data[np.logical_and(t_month_r == global_month, t_year_r == global_year)]
 
       if not special_df_recov.empty:
-        recov_fig = px.line(special_df_recov, x="date", y="recovered-count", hover_name="recovered-count",
+        recov_fig = px.line(special_df_recov, x="date", y=column_plot_r, hover_name=column_plot_r,
                   title=get_selected_countries_str()+ get_daterange_str(special_df_recov["date"], custom=True),
-                  labels={"recovered-count":"number"},
+                  labels={column_plot_r:"number"},
                   color="country",
                   line_shape="spline",
                   render_mode="svg")
@@ -306,9 +284,9 @@ if global_country:
         st.write("No data is available for the selected timeline, you can change the timeline parameter on the sidebar.")
     else:
       # No specific timeline is selected, display all available timeline
-      recov_fig = px.line(recov_data, x="date", y="recovered-count", hover_name="recovered-count",
+      recov_fig = px.line(recov_data, x="date", y=column_plot_r, hover_name=column_plot_r,
               title=get_selected_countries_str()+ get_daterange_str(recov_data["date"]),
-              labels={"recovered-count":"number"},
+              labels={column_plot_r:"number"},
               color="country",
               line_shape="spline",
               render_mode="svg")
@@ -317,16 +295,35 @@ if global_country:
 else:
   # no country was selected
   st.write("No country was selected, choose a country and adjust other parameters on the sidebar at the left.")
-  st.image("https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif", width=400, caption='A random cute cat')
+  st.image("https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif", width=400, caption='A random cute cat for you')
+
+
+@st.cache
+def get_confirmed_norm_second(df):
+  df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on ='Country')
+  df['Population_million'] = df['Population']/1000000
+  df['number_per_capita']= df['confirmed-count']/df['Population_million']
+  df = df.round({'number_per_capita': 0})
+  df["date"] = df["date"].astype('datetime64[ns]')
+  return df
+
+
+def get_recovered_norm_second(df):
+  df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on = 'Country')
+  df['Population_million'] = df['Population']/1000000
+  df['number_per_capita']= df['recovered-count']/df['Population_million']
+  df = df.round({'number_per_capita': 0})
+  df["date"] = df["date"].astype('datetime64[ns]')
+  return df
 
 if global_country_to_compare:
   confirmed_data = get_confirmed_melted(df_confirmed)
   confirmed_data = confirmed_data[confirmed_data['country'] == global_country_to_compare]
-  confirmed_data = get_confirmed_norm(confirmed_data)
+  confirmed_data = get_confirmed_norm_second(confirmed_data)
   confirmed_data = confirmed_data.groupby(["date", 'country'], as_index=False).agg({'number_per_capita':'sum','confirmed-count':'sum'}).set_index('date')
   recovered_data = get_recovered_melted(df_recovered)
   recovered_data = recovered_data[recovered_data['country'] == global_country_to_compare]
-  recovered_data = get_recovered_norm(recovered_data)
+  recovered_data = get_recovered_norm_second(recovered_data)
   recovered_data = recovered_data.groupby(["date", 'country'], as_index=False).agg({'number_per_capita':'sum','recovered-count':'sum'}).set_index('date')
   confirmed_data = confirmed_data.rename(columns={'number_per_capita':'confirmed_number'})
   recovered_data = recovered_data.rename(columns={'number_per_capita':'recovered_number'})
