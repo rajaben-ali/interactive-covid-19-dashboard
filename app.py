@@ -37,7 +37,8 @@ format_data()
 @st.cache
 def get_confirmed_melted(df):
   df = df.melt(id_vars=["province", "country"], var_name='date', value_name='confirmed-count')
-  df['date'] = pd.to_datetime(df['date'])
+  df['date'] = pd.to_datetime(df['date'], format="%m/%d/%y")
+  df['date'] = df['date'].dt.date
   return df
 
 @st.cache
@@ -82,6 +83,14 @@ def get_recovered_cumul(df):
   return df
 
 # Normalized data - with streamlit cache
+@st.cache
+def getnorm(df):
+  df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on = 'Country')
+  df["date"] = pd.to_datetime(df["date"], format="%m-%d-%y")
+  tmp = df["Population"] / 100000
+  df["confirmed-count"] = df["confirmed-count"] / tmp
+  return df
+
 @st.cache
 def get_confirmed_norm(df):
   df = pd.merge(df, df_population,how = 'inner', left_on = 'country' , right_on = 'Country')
@@ -183,7 +192,9 @@ if global_country:
 
     # check if asked for normalization
     if global_normalization == 'yes':
-      conf_data = get_confirmed_norm(conf_data)
+      #conf_data = get_confirmed_norm(conf_data)
+      conf_data = getnorm(conf_data)
+      conf_data
     # check if asked for cumulated number
     if global_method == "cumulated number":
       conf_data = get_confirmed_cumul(conf_data)
@@ -214,7 +225,6 @@ if global_country:
               title=get_selected_countries_str()+ get_daterange_str(conf_data["date"]),
               labels={"confirmed-count":"number"},
               color="country",
-              line_shape="spline",
               render_mode="svg")
       conf_fig.update_layout(hovermode="x")
       st.plotly_chart(conf_fig)
