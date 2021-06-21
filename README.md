@@ -42,20 +42,29 @@ streamlit run app.py
 
 1. There is a sidebar on the left. The first part of the sidebar is for date time selection.
 
-![don't select any date time](./screenshots/sidebar-01.png)
+<p align="center">
+  <img src="./screenshots/sidebar-01.png">
+</p>
 
 2. If you don't select any date time, the plot will display the overall time line as below.
 
-![overall time line plot](./screenshots/main-plot-01.png)
+<p align="center">
+  <img src="./screenshots/main-plot-01.png">
+</p>
 
 3. You can choose one country or several countries as below, the plot will display what you select.
 
-![select several countries](./screenshots/sidebar-02.png)
-
-![display several countries](./screenshots/main-plot-02.png)
+<p align="center">
+  <img src="./screenshots/sidebar-02.png">
+</p>
 
 4. If you select specific date time, the plot will display the result of all the countries.
 
-![select specific date time](./screenshots/sidebar-03.png)
 
-![display the result of specific date time](./screenshots/main-plot-03.png)
+<p align="center">
+  <img src="./screenshots/sidebar-03.png">
+</p>
+
+<p align="center">
+  <img src="./screenshots/main-plot-03.png">
+</p>
